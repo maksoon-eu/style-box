@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет - StyleBox</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+    <div class="page-container">
+    <header>
+        <h1>StyleBox</h1>
+        <nav>
+            <a href="index.html">Главная</a>
+            <a href="products.html">Товары</a>
+            <a href="contact.html">Контакты</a>
+            <a href="cart.html">Корзина</a> <!-- Ссылка на страницу корзины -->
+            <a id="profile-link" href="login.html">Авторизация</a> <!-- Ссылка на личный кабинет (по умолчанию) -->
+        </nav>
+    </header>
+
+    <div class="container">
+        <h2>Добро пожаловать в ваш личный кабинет!</h2>
+        <p>Здесь вы можете управлять своими данными и просматривать историю заказов.</p>
+
+	<div id="user-info">
+            <p><strong>Имя:</strong> <span id="display-name"></span></p>
+            <p><strong>Номер телефона:</strong> <span id="display-phone"></span></p>
+            <p><strong>Адрес:</strong> <span id="display-address"></span></p>
+            <p><strong>Email:</strong> <span id="display-email"></span></p>
+        </div>
+	<button id="edit-button" onclick="enableEdit()">Изменить информацию</button>
+	<button id="favorites-button" onclick="toggleFavorites()">Избранное</button>
+
+        <!-- Список избранных товаров -->
+        <div id="favorites-list" style="display: none;">
+            <h3>Ваши избранные товары:</h3>
+            <ul id="favorites"></ul> <!-- Список избранных товаров -->
+        </div>
+	<button id="orders-button" class="btn" onclick="toggleOrders()">История заказов</button>
+        <!-- Кнопка для редактирования информации -->
+
+
+        <!-- Раздел для истории заказов -->
+        <div id="orders-list" style="display: none;">
+            <h3>Ваши заказы:</h3>
+            <div id="orders"></div> <!-- Сюда будут добавлены заказы -->
+            <button class="btn" onclick="clearOrders()">Очистить историю заказов</button> <!-- Кнопка для очистки истории -->
+        </div>
+
+        <!-- Форма для редактирования информации -->
+        <form id="profile-form" style="display: none;" onsubmit="return updateProfile(event)">
+            <label for="name">Имя:</label><br/>
+            <input type="text" id="name" name="name" required><br/><br/>
+
+            <label for="phone">Номер телефона:</label><br/>
+            <input type="text" id="phone" name="phone" required><br/><br/>
+
+            <label for="address">Адрес:</label><br/>
+            <input type="text" id="address" name="address" required><br/><br/>
+
+	     <label for="email">Почта:</label><br/>
+            <input type="email" id="email" name="email" required><br/><br/>
+
+            <button class = "btn">Сохранить изменения</button>
+        </form>
+	
+
+        <!-- Изменение пароля -->
+        <h3>Изменение пароля</h3>
+        <form id="password-form" onsubmit="return updatePassword(event)">
+            <label for="old-password">Старый пароль:</label><br/>
+            <input type="password" id="old-password" name="old-password" required><br/><br/>
+
+            <label for="new-password">Новый пароль:</label><br/>
+            <input type="password" id="new-password" name="new-password"><br/><br/>
+
+            <button class = "btn">Изменить пароль</button>
+        </form>
+	<!-- Кнопка выхода -->
+        <button class = "btn" onclick="logoutUser()">Выход</button>
+	 <button class="btn" onclick="confirmDeleteAccount()">Удалить аккаунт</button>
+    </div>
+    </div>
+
+    <footer>
+	    <p>&copy; 2024 Интернет-магазин одежды StyleBox</p>
+    </footer>
+    </div>
+    <script>
+        // Проверяем, авторизован ли пользователь
+        const loggedInUser = localStorage.getItem('loggedInUser');
+
+        if (!loggedInUser) {
+            // Если пользователь не авторизован, перенаправляем на страницу авторизации
+            window.location.href = "login.html";
+        } else {
+            // Если пользователь авторизован, отображаем его имя
+            const profileLink = document.getElementById('profile-link');
+            profileLink.textContent = 'Личный кабинет';
+            profileLink.href = 'profile.html';
+
+            // Загружаем информацию о пользователе
+            loadUserData();
+        }
+
+	function toggleFavorites(){
+	    const favoriteslistDiv = document.getElementById('favorites-list');
+  	    
+	    if (favoriteslistDiv.style.display == 'none') {
+		showFavorites();
+	    } else {
+		favoriteslistDiv.style.display = 'none';
+	    }
+	}
+	  function showFavorites() {
+            const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            const favoritesList = document.getElementById('favorites');
+            
+            favoritesList.innerHTML = ''; // Очищаем предыдущий список
+
+            if (favorites.length === 0) {
+                favoritesList.innerHTML = '<li>Нет избранных товаров.</li>';
+                document.getElementById('favorites-list').style.display = 'block';
+                return;
+            }
+
+            const products = JSON.parse(localStorage.getItem('products')) || [];
+
+            favorites.forEach(favoriteId => {
+                const product = products.find(p => p.id === favoriteId);
+                if (product) {
+                    const li = document.createElement('li');
+                    li.textContent = product.name; // Имя товара
+                    const removeButton = document.createElement('button');
+                    removeButton.textContent = 'Удалить из Избранного';
+		    removeButton.className = "btn";
+                    removeButton.onclick = () => removeFromFavorites(favoriteId);
+                    li.appendChild(removeButton);
+                    favoritesList.appendChild(li);
+                }
+            });
+
+            document.getElementById('favorites-list').style.display = 'block';
+        }
+
+        function removeFromFavorites(productId) {
+            let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            favorites = favorites.filter(id => id !== productId); // Удаляем товар из избранного
+            localStorage.setItem('favorites', JSON.stringify(favorites)); // Сохраняем обновленный список
+
+            alert("Товар удалён из Избранного.");
+            
+            showFavorites(); // Обновляем отображение списка избранных товаров
+        }
+	
+        function loadUserData() {
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const user = users.find(user => user.username === loggedInUser);
+
+            if (user) {
+                document.getElementById('display-name').textContent = user.name || '';
+                document.getElementById('display-phone').textContent = user.phone || '';
+                document.getElementById('display-address').textContent = user.address || '';
+                document.getElementById('display-email').textContent = user.email || '';
+
+                // Заполняем поля для редактирования
+                document.getElementById('name').value = user.name || '';
+                document.getElementById('phone').value = user.phone || '';
+                document.getElementById('address').value = user.address || '';
+                document.getElementById('email').value = user.email || '';
+            }
+        }
+
+        function enableEdit() {
+            // Показываем форму редактирования и скрываем информацию о пользователе
+            document.getElementById('user-info').style.display = 'none';
+            document.getElementById('edit-button').style.display = 'none';
+            document.getElementById('profile-form').style.display = 'block';
+            
+            // Заполняем поля формы текущими данными пользователя
+            loadUserData();
+        }
+
+        function updateProfile(event) {
+            event.preventDefault(); // Предотвращаем перезагрузку страницы
+
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const userIndex = users.findIndex(user => user.username === loggedInUser);
+
+            if (userIndex === -1) {
+                alert("Пользователь не найден.");
+                return;
+            }
+
+            // Обновляем данные пользователя
+            users[userIndex].name = document.getElementById('name').value;
+            users[userIndex].phone = document.getElementById('phone').value;
+            users[userIndex].address = document.getElementById('address').value;
+	    users[userIndex].email = document.getElementById('email').value;
+
+            // Сохраняем обновленные данные в локальное хранилище
+            localStorage.setItem('users', JSON.stringify(users));
+
+            alert("Данные успешно обновлены!");
+            
+            // Обновляем отображаемые данные и скрываем форму редактирования
+            loadUserData();
+            
+            // Возвращаем отображение информации о пользователе
+            document.getElementById('user-info').style.display = 'block';
+            document.getElementById('profile-form').style.display = 'none';
+            document.getElementById('edit-button').style.display = 'block';
+        }
+
+        function updatePassword(event) {
+             event.preventDefault(); // Предотвращаем перезагрузку страницы
+
+             const users = JSON.parse(localStorage.getItem('users')) || [];
+             const userIndex = users.findIndex(user => user.username === loggedInUser);
+
+             if (userIndex === -1) {
+                 alert("Пользователь не найден.");
+                 return;
+             }
+
+             const oldPassword = document.getElementById('old-password').value;
+             
+             // Проверяем старый пароль
+             if (users[userIndex].password !== oldPassword) {
+                 alert("Неверный старый пароль.");
+                 return;
+             }
+
+             const newPassword = document.getElementById('new-password').value;
+
+             // Обновляем пароль только если введен новый
+             if (newPassword) {
+                 users[userIndex].password = newPassword;
+                 alert("Пароль успешно изменен.");
+                 
+                 // Очищаем поле нового пароля
+                 document.getElementById('new-password').value = '';
+                 
+                 // Сохраняем обновленные данные в локальное хранилище
+                 localStorage.setItem('users', JSON.stringify(users));
+                 
+                 return;
+              }
+
+              alert("Пароль не изменён, так как новое значение не было введено.");
+         }
+
+         function confirmDeleteAccount() {
+             const confirmation = confirm("Вы уверены, что хотите удалить свой аккаунт? Это действие необратимо.");
+             if (confirmation) {
+                 deleteAccount();
+             }
+         }
+	function toggleOrders() {
+            const ordersListDiv = document.getElementById('orders-list');
+            
+            if (ordersListDiv.style.display === 'none') {
+                loadOrders(); // Загружаем заказы при открытии списка
+                ordersListDiv.style.display = 'block'; // Показываем список заказов
+            } else {
+                ordersListDiv.style.display = 'none'; // Скрываем список заказов
+            }
+        }
+
+        function loadOrders() {
+            const ordersListDiv = document.getElementById('orders');
+            const orders = JSON.parse(localStorage.getItem('orders')) || [];
+
+            if (orders.length === 0) {
+                ordersListDiv.innerHTML = '<p>Нет заказов.</p>';
+                return;
+            }
+
+            ordersListDiv.innerHTML = ''; // Очищаем предыдущий список
+
+            orders.forEach(order => {
+                const orderDiv = document.createElement('div');
+                orderDiv.className = 'order';
+                orderDiv.innerHTML = `
+                    <h4>Заказ #${order.id} - ${new Date(order.date).toLocaleString()}</h4>
+                    <p>Итоговая сумма: ${order.totalPrice} руб.</p>
+                    <ul>${order.items.map(item => `<li>${item.id} (Количество: ${item.quantity})`).join('')}</ul>
+                `;
+                
+                ordersListDiv.appendChild(orderDiv);
+            });
+        }
+
+        function clearOrders() {
+            localStorage.removeItem('orders'); // Удаляем историю заказов из локального хранилища
+            document.getElementById('orders').innerHTML = '<p>Нет заказов.</p>'; // Обновляем отображение
+            alert("История заказов очищена!");
+        }
+         function deleteAccount() {
+             let users = JSON.parse(localStorage.getItem('users')) || [];
+             users = users.filter(user => user.username !== loggedInUser); // Удаляем пользователя из массива
+
+             localStorage.setItem('users', JSON.stringify(users)); // Сохраняем обновленный массив пользователей
+
+             alert("Ваш аккаунт был успешно удалён.");
+             logoutUser(); // Выход из аккаунта после удаления
+         }
+
+         function logoutUser() {
+             // Удаляем информацию о пользователе из локального хранилища
+             localStorage.removeItem('loggedInUser');
+             // Перенаправляем на страницу авторизации
+             window.location.href = "login.html";
+         }
+    </script>
+</body>
+</html>

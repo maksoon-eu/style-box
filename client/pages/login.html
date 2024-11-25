@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизация - StyleBox</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+    <div class="page-container">
+    <header>
+        <h1>StyleBox</h1>
+        <nav>
+            <a href="index.html">Главная</a>
+            <a href="products.html">Товары</a>
+            <a href="contact.html">Контакты</a>
+            <a href="cart.html">Корзина</a>
+            <a id="profile-link" href="login.html">Авторизация</a> 
+        </nav>
+    </header>
+
+    <div class="container">
+        <h2 id="form-title">Авторизация</h2>
+
+        <!-- Форма для входа -->
+        <form id="login-form" onsubmit="return loginUser(event)">
+            <label for="username">Имя пользователя:</label><br/>
+            <input type="text" id="username" name="username" required><br/><br/>
+            
+            <label for="password">Пароль:</label><br/>
+            <input type="password" id="password" name="password" required><br/><br/>
+
+            <button class="btn">Войти</button>
+        </form>
+	 <p><button id="forgot-password-button" onclick="showForgotPasswordForm()">Забыли пароль?</button></p>
+
+        <!-- Форма восстановления пароля (скрыта по умолчанию) -->
+        <form id="forgot-password-form" style="display: none;" onsubmit="return resetPassword(event)">
+            <label for="reset-username">Имя пользователя:</label><br/>
+            <input type="text" id="reset-username" name="reset-username" required><br/><br/>
+
+            <label for="new-password">Новый пароль:</label><br/>
+            <input type="password" id="new-password" name="new-password" required><br/><br/>
+
+            <button class="btn" type="submit">Сбросить пароль</button>
+        </form>
+        <!-- Кнопка для переключения на регистрацию -->
+        <p><button id="toggle-register" onclick="toggleForms()">Создать новый аккаунт</button></p>
+
+        <!-- Форма регистрации (скрыта по умолчанию) -->
+        <form id="register-form" style="display: none;" onsubmit="return registerUser(event)">
+            <label for="new-username">Имя пользователя:</label><br/>
+            <input type="text" id="new-username" name="new-username" required><br/><br/>
+
+            <label for="new-password-register">Пароль:</label><br/>
+            <input type="password" id="new-password-register" name="new-password-register" required><br/><br/>
+
+            <!-- Новые поля для регистрации -->
+	    <label for="email">Почта:</label><br/>
+            <input type="email" id="email" name="email" required><br/><br/>
+	    
+            <label for="name">Имя:</label><br/>
+            <input type="text" id="name" name="name" required><br/><br/>
+
+            <label for="phone">Номер телефона:</label><br/>
+            <input type="text" id="phone" name="phone" required><br/><br/>
+
+            <label for="address">Адрес:</label><br/>
+            <input type="text" id="address" name="address" required><br/><br/>
+
+            <button class="btn">Создать аккаунт</button>
+        </form>
+
+
+        <!-- Сообщение об ошибках или успехе -->
+        <div id="message"></div>
+    </div>
+
+    <footer>
+	    <p>&copy; 2024 Интернет-магазин одежды StyleBox</p>
+    </footer>
+    </div>
+    <!-- JavaScript для авторизации и регистрации -->
+     <script>
+        // Храним пользователей в локальном хранилище
+        const users = JSON.parse(localStorage.getItem('users')) || [];
+
+        function loginUser(event) {
+            event.preventDefault(); // Предотвращаем перезагрузку страницы
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Проверяем, есть ли пользователь с таким именем и паролем
+            const user = users.find(user => user.username === username && user.password === password);
+
+            const message = document.getElementById('message');
+            if (user) {
+                message.textContent = 'Успешный вход!';
+                message.style.color = 'green';
+                
+                // Сохраняем информацию о том, что пользователь авторизован
+                localStorage.setItem('loggedInUser', username);
+                
+                // Перенаправляем на страницу личного кабинета
+                window.location.href = "profile.html"; 
+            } else {
+                message.textContent = 'Неверное имя пользователя или пароль.';
+                message.style.color = 'red';
+            }
+        }
+
+        function showForgotPasswordForm() {
+            document.getElementById('login-form').style.display = 'none'; // Скрываем форму входа
+            document.getElementById('forgot-password-form').style.display = 'block'; // Показываем форму сброса пароля
+        }
+
+        function resetPassword(event) {
+            event.preventDefault(); // Предотвращаем перезагрузку страницы
+
+            const resetUsername = document.getElementById('reset-username').value;
+            const newPassword = document.getElementById('new-password').value;
+
+            const userIndex = users.findIndex(user => user.username === resetUsername);
+
+            const message = document.getElementById('message');
+            
+            if (userIndex !== -1) {
+                // Обновляем пароль пользователя
+                users[userIndex].password = newPassword;
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                message.textContent = 'Пароль успешно сброшен!';
+                message.style.color = 'green';
+                
+                // Скрываем форму сброса пароля и показываем форму входа
+                document.getElementById('forgot-password-form').style.display = 'none';
+                document.getElementById('login-form').style.display = 'block';
+                
+                // Очищаем поля формы
+                document.getElementById('reset-username').value = '';
+                document.getElementById('new-password').value = '';
+                
+                return;
+             } else {
+                 message.textContent = 'Пользователь не найден.';
+                 message.style.color = 'red';
+             }
+         }
+
+         async function registerUser(event) {
+    event.preventDefault(); // Предотвращаем перезагрузку страницы
+
+    const newUsername = document.getElementById('new-username').value;
+    const newPassword = document.getElementById('new-password-register').value; 
+
+    // Новые поля для регистрации
+    const email = document.getElementById('email').value;
+    const name = document.getElementById('name').value;
+    const phone = document.getElementById('phone').value;
+    const address = document.getElementById('address').value;
+
+    // Проверяем, существует ли уже пользователь с таким именем
+    const existingUser = users.find(user => user.username === newUsername);
+
+    const message = document.getElementById('message');
+    if (existingUser) {
+        message.textContent = 'Пользователь с таким именем уже существует.';
+        message.style.color = 'red';
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: newUsername,
+                password: newPassword,
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Ошибка регистрации');
+        }
+
+        // Добавляем нового пользователя в локальное хранилище
+        users.push({ 
+            username: newUsername, 
+            password: newPassword,
+            email: email,
+            name: name,
+            phone: phone,
+            address: address
+        });
+
+        localStorage.setItem('users', JSON.stringify(users));
+
+        message.textContent = 'Аккаунт успешно создан!';
+        message.style.color = 'green';
+        
+        // Очистка полей формы
+        document.getElementById('register-form').reset();
+    } catch (error) {
+        message.textContent = error.message;
+        message.style.color = 'red';
+    }
+}
+
+          function toggleForms() {
+              const loginForm = document.getElementById('login-form');
+              const registerForm = document.getElementById('register-form');
+              
+              if (loginForm.style.display === "none") {
+                  loginForm.style.display = "block";
+                  registerForm.style.display = "none";
+                  document.getElementById('form-title').textContent = "Авторизация";
+                  document.getElementById('toggle-register').textContent = "Создать новый аккаунт";
+                  document.getElementById('message').textContent = ""; // Очистка сообщения
+              } else {
+                  loginForm.style.display = "none";
+                  registerForm.style.display = "block";
+                  document.getElementById('form-title').textContent = "Регистрация";
+                  document.getElementById('toggle-register').textContent = "Уже есть аккаунт? Войти";
+                  document.getElementById('message').textContent = ""; // Очистка сообщения
+              }
+          }
+     </script>
+ </body>
+ </html>

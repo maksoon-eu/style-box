@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контакты</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+    <div class="page-container">
+    <header>
+        <h1>StyleBox</h1>
+        <nav>
+            <a href="index.html">Главная</a>
+            <a href="products.html">Товары</a>
+            <a href="contact.html">Контакты</a>
+	    <a href="cart.html">Корзина</a>
+	    <a id="profile-link" href="login.html">Авторизация</a> <!-- Ссылка на личный кабинет (по умолчанию) -->
+        </nav>
+    </header>
+
+    <div class="container">
+        <h2>Свяжитесь с нами</h2>
+        <form id="contact-form" action="#" method="post">
+            <label for="name">Имя:</label><br/>
+            <input type="text" id="name" name="name"><br/><br/>
+            <label for="email">Email:</label><br/>
+            <input type="email" id="email" name="email"><br/><br/>
+	    <label for="message">Сообщение:</label><br/>
+            <textarea id="message" name="message" rows="6" required></textarea><br/><br/>
+            <button class="btn"> Отправить</button>
+        </form>
+	 <div id="messages"></div>
+	<!-- Контактная информация -->
+        <div class="contact-info">
+            <h3>Контактная информация</h3>
+            <p><strong>Адрес:</strong> ул. Модная, 123, Москва, Россия</p>
+            <p><strong>Телефон:</strong> +7 (918) 602-41-00</p>
+            <p>"Ваш <strong>стиль</strong> — наша забота!"</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Интернет-магазин одежды StyleBox</p>
+    </footer>
+    </div>
+    <script>
+	// Проверяем, авторизован ли пользователь
+	const loggedInUser = localStorage.getItem('loggedInUser');
+
+	if (loggedInUser) {
+    		const profileLink = document.getElementById('profile-link');
+   		 profileLink.textContent = 'Личный кабинет';
+    		profileLink.href = 'profile.html';
+		}
+	const messagesArray = [];
+
+// Функция для обработки отправки формы
+    document.getElementById('contact-form').addEventListener('submit', function(event) {
+    event.preventDefault(); // Предотвращаем стандартное поведение формы
+
+    // Получаем значения из полей формы
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const message = document.getElementById('message').value;
+
+    // Создаем объект сообщения
+    const messageObject = {
+        name: name,
+        email: email,
+        message: message
+    };
+
+    // Добавляем сообщение в массив
+    messagesArray.push(messageObject);
+
+    // Отображаем сообщения на странице
+    displayMessages();
+
+    // Сбрасываем форму
+    document.getElementById('contact-form').reset();
+});
+
+// Функция для отображения сообщений
+function displayMessages() {
+    const messagesDiv = document.getElementById('messages');
+    messagesDiv.innerHTML = ''; // Очищаем предыдущие сообщения
+
+    messagesArray.forEach((msg, index) => {
+        const messageElement = document.createElement('div');
+        messageElement.innerHTML = `
+            <strong>${msg.name} (${msg.email}):</strong><br>
+            ${msg.message}<br><br>
+        `;
+        messagesDiv.appendChild(messageElement);
+    });
+}
+    </script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная страница - StyleBox</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+    <div class="page-container">
+        <header>
+            <img src="../img/StyleBox.png" alt="Логотип StyleBox" class="logo">
+            <h1>StyleBox</h1>
+            <nav>
+                <a href="index.html">Главная</a>
+                <a href="products.html">Товары</a>
+                <a href="contact.html">Контакты</a>
+	        <a href="cart.html">Корзина</a>
+	        <a id="profile-link" href="login.html">Авторизация</a> <!-- Ссылка на личный кабинет (по умолчанию) -->
+            </nav>
+        </header>
+
+        <div class="container">
+	    <h2>Добро пожаловать в StyleBox!</h2>
+            <p>В нашем магазине вы найдете стильную и качественную одежду для любого случая. Мы предлагаем широкий ассортимент товаров, от повседневной одежды до модных аксессуаров, которые помогут вам выразить свою индивидуальность.</p>
+            <p>Мы заботимся о наших клиентах и стремимся предоставить лучший сервис. Присоединяйтесь к нам и обновите свой гардероб с StyleBox!</p>
+
+            <h2>Наши предложения</h2>
+            <p>Лучшие товары по выгодным ценам!</p>
+	    <div class="product-card">
+            	<img src="img/tolstovka_1.png" alt="Худи оверсайз">
+           	<h3 class="product-title">Худи оверсайз(цвет - белый)</h3>
+                <p class="product-price">Цена: 1000 руб.</p>
+            </div>
+	    <div class="product-card">
+	    	<img src="img/jeans_oversize_1.png" alt="Джинсы оверсайз">
+	    	<h3 class="product-title">Джинсы оверсайз</h3>
+	    	<p class="product-price">Цена: 2000 руб.</p>
+	    </div>
+
+	     </section>
+
+        <!-- Скидки и акции -->
+        <section class="promotions">
+            <h2>Специальные предложения</h2>
+            <p>Скидка 20% на все летние коллекции!</p>
+        </section>
+
+        <!-- Отзывы клиентов -->
+        <section class="testimonials">
+            <h2>Отзывы клиентов</h2>
+            <blockquote>"Мне очень понравилась куртка!" — Анна, Москва.</blockquote>
+        </section>
+
+
+        </div>
+
+        <footer>
+	    <p>&copy; 2024 Интернет-магазин одежды StyleBox</p>
+        </footer>
+    </div>
+    <script>
+	// Проверяем, авторизован ли пользователь
+	const loggedInUser = localStorage.getItem('loggedInUser');
+	if (loggedInUser) {
+    		const profileLink = document.getElementById('profile-link');
+   		 profileLink.textContent = 'Личный кабинет';
+    		profileLink.href = 'profile.html';
+		}
+    </script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Страница товаров</title>
+    <link rel="stylesheet" href="styles/style.css" />
+  </head>
+  <body>
+    <div class="page-container">
+      <header>
+        <h1>StyleBox</h1>
+        <nav>
+          <a href="index.html">Главная</a>
+          <a href="products.html">Товары</a>
+          <a href="contact.html">Контакты</a>
+          <a href="cart.html">Корзина</a>
+          <a id="profile-link" href="login.html">Авторизация</a>
+          <!-- Ссылка на личный кабинет (по умолчанию) -->
+        </nav>
+      </header>
+
+      <div class="container">
+        <h2>Категории товаров</h2>
+        <label for="search-input">Поиск:</label>
+        <input
+          type="text"
+          id="search-input"
+          oninput="filterProducts()"
+          placeholder="Введите название товара..."
+        />
+        <label for="gender-filter">Пол:</label>
+        <select id="gender-filter" onchange="filterProducts()">
+          <option value="">Все</option>
+          <option value="male">Мужские</option>
+          <option value="female">Женские</option>
+          <option value="unisex">Унисекс</option>
+        </select>
+
+        <label for="type-filter">Вид:</label>
+        <select id="type-filter" onchange="filterProducts()">
+          <option value="">Все</option>
+          <option value="shoes">Обувь</option>
+          <option value="top">Верхняя одежда</option>
+          <option value="bottom">Нижняя одежда</option>
+          <option value="outerwear">Наружная одежда</option>
+        </select>
+        <div id="product-list"></div>
+
+        <div id="imageModal" class="modal">
+          <span class="close" onclick="closeModal()">&times;</span>
+          <img class="modal-content" id="modalImage" />
+        </div>
+      </div>
+
+      <footer>
+        <p>&copy; 2024 Интернет-магазин одежды StyleBox</p>
+      </footer>
+    </div>
+    <script src="../js/products.js"></script>
+    <script>
+      if (!localStorage.getItem("products")) {
+        localStorage.setItem("products", JSON.stringify(products));
+      }
+      // Проверяем, авторизован ли пользователь
+      const loggedInUser = localStorage.getItem("loggedInUser");
+
+      if (loggedInUser) {
+        const profileLink = document.getElementById("profile-link");
+        profileLink.textContent = "Личный кабинет";
+        profileLink.href = "profile.html";
+      }
+
+      const productList = document.getElementById("product-list");
+
+      function displayProducts(filteredProducts) {
+        productList.innerHTML = ""; // Очищаем список перед загрузкой
+
+        filteredProducts.forEach((product) => {
+          const productDiv = document.createElement("div");
+          productDiv.className = "product";
+          productDiv.innerHTML = `
+                   <h3>${product.name}</h3>
+                   <img src="${product.images[0]}" alt="${
+            product.name
+          }" style="width:150px;height:auto;" onclick="openModal('${product.images.join(
+            ","
+          )}')"><br/>
+                   <p>${product.description}</p>
+                   <p>Цена: ${product.price} руб.</p>
+                   <button class="btn" onclick="addToFavorites(${
+                     product.id
+                   })">Добавить в Избранное</button>
+                   <button class="btn" onclick="addToCart(${
+                     product.id
+                   })">Добавить в Корзину</button> <!-- Кнопка для добавления в корзину -->
+               `;
+
+          productList.appendChild(productDiv);
+        });
+      }
+
+      function filterProducts() {
+        const genderFilter = document.getElementById("gender-filter").value;
+        const typeFilter = document.getElementById("type-filter").value;
+        const searchInput = document
+          .getElementById("search-input")
+          .value.toLowerCase();
+
+        // Фильтруем продукты по выбранным категориям и ключевым словам
+        const filteredProducts = products.filter((product) => {
+          const matchesGender =
+            (genderFilter === "male" &&
+              (product.gender === "male" || product.gender === "unisex")) ||
+            (genderFilter === "female" &&
+              (product.gender === "female" || product.gender === "unisex")) ||
+            genderFilter === "" ||
+            genderFilter === "unisex";
+
+          const matchesType = typeFilter ? product.type === typeFilter : true;
+
+          const matchesSearch =
+            product.name.toLowerCase().includes(searchInput) ||
+            product.description.toLowerCase().includes(searchInput);
+
+          return matchesGender && matchesType && matchesSearch;
+        });
+
+        displayProducts(filteredProducts); // Отображаем отфильтрованные продукты
+      }
+
+      // Отображаем все продукты при загрузке страницы
+      displayProducts(products);
+
+      function addToFavorites(productId) {
+        let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+
+        if (!favorites.includes(productId)) {
+          favorites.push(productId);
+          localStorage.setItem("favorites", JSON.stringify(favorites));
+          alert("Товар добавлен в Избранное!");
+        } else {
+          alert("Этот товар уже в Избранном.");
+        }
+      }
+
+      function addToCart(productId) {
+        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+        // Проверяем, есть ли товар уже в корзине
+        const existingProductIndex = cart.findIndex(
+          (item) => item.id === productId
+        );
+
+        if (existingProductIndex !== -1) {
+          // Если товар уже есть, увеличиваем его количество
+          cart[existingProductIndex].quantity += 1;
+        } else {
+          // Если товара нет, добавляем его с количеством 1
+          const product = products.find((item) => item.id === productId);
+          cart.push({ id: productId, quantity: 1, image: product.images[0] });
+        }
+
+        localStorage.setItem("cart", JSON.stringify(cart)); // Сохраняем обновленный список
+        alert("Товар добавлен в Корзину!");
+      }
+
+      function openModal(images) {
+        const modal = document.getElementById("imageModal");
+        const modalImage = document.getElementById("modalImage");
+
+        modal.style.display = "block"; // Показываем модальное окно
+
+        // Создаем слайдер изображений
+        let imageArray = images.split(",");
+        let currentIndex = 0;
+
+        modalImage.src = imageArray[currentIndex];
+
+        modalImage.onclick = function () {
+          currentIndex++;
+          if (currentIndex >= imageArray.length) currentIndex = 0; // Цикл по изображениям
+          modalImage.src = imageArray[currentIndex];
+        };
+      }
+
+      function closeModal() {
+        const modal = document.getElementById("imageModal");
+        modal.style.display = "none"; // Закрываем модальное окно
+      }
+    </script>
+  </body>
+</html>
